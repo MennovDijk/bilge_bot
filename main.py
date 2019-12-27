@@ -1,7 +1,10 @@
 import mss
 import cv2
 import time
+import win32gui
+
 import numpy as np
+
 from operator import itemgetter
 from funcs import sliding_window, find_longest_island_indices
 from combos import three_by_three, three_by_four, four_by_four, bingo
@@ -28,18 +31,34 @@ winH = 560
 
 # Main bot loop
 
+def obtain_pp_window_location():
+    """
+    Returns X and Y coordinates of Puzzle Pirates window
+    """
+    # hwnd = win32gui.FindWindow("SunAwtFrame", None)
+    hwnd = win32gui.FindWindow(None, "Puzzle Pirates - Testaccer on the Cerulean ocean")
+    rect = win32gui.GetWindowRect(hwnd)
+    
+    return (rect[0], rect[1])
+
+
 while True:
     # grab screen
     with mss.mss() as sct:
         time_begin = time.time()
-        # Grab the exact window of where the bilge screen appears (very crude way of obtaining the screen)
-        # TODO: detect ypp image on top left and automatically set bilge window properly
-        monitor = {'top': 290, 'left': 644, 'width': winW-5, 'height': winH-15}
-        img = np.array(sct.grab(monitor))
+
+        # grab the x and y coordinates of the top-left of the Puzzle Pirates window
+        ppwinx, ppwiny = obtain_pp_window_location()
+
+        # Grab the exact window of where the bilge screen appears
+        bilge_puzzle = {'top': ppwiny+72, 'left': ppwinx+92, 'width': winW-15, 'height': winH-20}
+
+        img = np.array(sct.grab(bilge_puzzle))
+
         board = []
         # Analyze pieces on board by sliding over every piece individually and template matching them
-        for (x, y, window) in sliding_window(start_x = 5,
-                                             start_y = 7,
+        for (x, y, window) in sliding_window(start_x = 0,
+                                             start_y = 0,
                                              image = img,
                                              stepSize= 45,
                                              windowSize=(winW, winH)):
@@ -58,8 +77,8 @@ while True:
                 matching.append((temp[0], max_val))
 
             board.append(sorted(matching, key=itemgetter(1))[-1][0])
-            #cv2.imshow("Window", crop_img)  # (comment out if you want to see piece detection)
-            cv2.waitKey(1)
+            cv2.imshow("Window", crop_img)  # (comment out if you want to see piece detection)
+            cv2.waitKey(100)
 
         # initialize array and set variables to obtain board state
         # TODO: Vectorize, probably won't make a huge difference in execution time
@@ -78,10 +97,10 @@ while True:
                 row = []
 
             count += 1
-
+        print(board_arr)
         # Generates every possible new state given the current board state
-        # TODO: Create evaluation function and apply monte carlo tree search to find best states given depth of search D
-
+        # TODO: Create evaluation function and apply depth-first tree search to find best states given depth of search D
+        # https://github.com/jmitash/BilgeBot/blob/master/src/com/knox/bilgebot/SolutionSearch.java
         states = []
 
         # for all pieces on the original board
@@ -142,14 +161,15 @@ while True:
                 states.append(((i,j),board_arr_move.astype(int)))
 
     # prints out all 60 obtained states for debugging purposes (should always be 60 since 12*5 possible moves)
-    print(len(states))
-    for (i,j), state in states:
-        print((i,j))
-        print(state)
-        print("="*50)
+    # print(len(states))
+    # for (i,j), state in states:
+    #     print((i,j))
+    #     print(state)
+    #     print("="*50)
 
     print(time.time() - time_begin) # Currently takes 0.4-0.5 seconds to run on my computer (= very slow)
     break
 
 cv2.destroyAllWindows()
 exit()
+
