@@ -8,6 +8,7 @@ import numpy as np
 from operator import itemgetter
 from funcs import sliding_window, find_longest_island_indices
 from combos import three_by_three, three_by_four, four_by_four, bingo
+from pywin32_grabwindow import obtain_pp_window_location
 
 # load all template images of the pieces found on the board
 # TODO: Add the remaining pieces (last regular piece, pufferfish, jellyfish, crab)
