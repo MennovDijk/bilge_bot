@@ -36,7 +36,7 @@ def obtain_pp_window_location():
     Returns X and Y coordinates of Puzzle Pirates window
     """
     # hwnd = win32gui.FindWindow("SunAwtFrame", None)
-    hwnd = win32gui.FindWindow(None, "Puzzle Pirates - Testaccer on the Cerulean ocean")
+    hwnd = win32gui.FindWindow(None, "Puzzle Pirates - Zegelstein on the Emerald ocean")
     rect = win32gui.GetWindowRect(hwnd)
     
     return (rect[0], rect[1])
@@ -78,7 +78,7 @@ while True:
 
             board.append(sorted(matching, key=itemgetter(1))[-1][0])
             cv2.imshow("Window", crop_img)  # (comment out if you want to see piece detection)
-            cv2.waitKey(100)
+            cv2.waitKey(10)
 
         # initialize array and set variables to obtain board state
         # TODO: Vectorize, probably won't make a huge difference in execution time
@@ -100,7 +100,7 @@ while True:
         print(board_arr)
         # Generates every possible new state given the current board state
         # TODO: Create evaluation function and apply depth-first tree search to find best states given depth of search D
-        # https://github.com/jmitash/BilgeBot/blob/master/src/com/knox/bilgebot/SolutionSearch.java
+        # https://github.com/jmitash/BilgeBot/blob/master/src/com/knox/bilgebot/ScoreSearch.java
         states = []
 
         # for all pieces on the original board
