@@ -7,8 +7,8 @@ import numpy as np
 
 from operator import itemgetter
 from funcs import sliding_window, find_longest_island_indices
-from combos import three_by_three, three_by_four, four_by_four, bingo
 from pywin32_grabwindow import obtain_pp_window_location
+from analyze_board_state import obtain_combos, evaluation_function
 
 # load all template images of the pieces found on the board
 # TODO: Add the remaining pieces (last regular piece, pufferfish, jellyfish, crab)
@@ -30,19 +30,7 @@ four_by_fours = four_by_four()
 winW = 280
 winH = 560
 
-# Main bot loop
-
-def obtain_pp_window_location():
-    """
-    Returns X and Y coordinates of Puzzle Pirates window
-    """
-    # hwnd = win32gui.FindWindow("SunAwtFrame", None)
-    hwnd = win32gui.FindWindow(None, "Puzzle Pirates - Zegelstein on the Emerald ocean")
-    rect = win32gui.GetWindowRect(hwnd)
-    
-    return (rect[0], rect[1])
-
-
+# Main loop
 while True:
     # grab screen
     with mss.mss() as sct:
