@@ -22,11 +22,6 @@ template_6 = ("6", cv2.imread('./images/lightblue_square.png', 0))
 
 templates = [template_1, template_2, template_3, template_4, template_5, template_6]
 
-bingos = bingo()
-three_by_threes = three_by_three()
-three_by_fours = three_by_four()
-four_by_fours = four_by_four()
-
 winW = 280
 winH = 560
 
@@ -51,7 +46,6 @@ while True:
                                              image = img,
                                              stepSize= 45,
                                              windowSize=(winW, winH)):
-
             crop_img = img[y:y + 45, x:x + 45]
 
             # TODO: might possibly need colors to properly detect, need to check with all 9 possible pieces
@@ -67,7 +61,7 @@ while True:
 
             board.append(sorted(matching, key=itemgetter(1))[-1][0])
             cv2.imshow("Window", crop_img)  # (comment out if you want to see piece detection)
-            cv2.waitKey(10)
+            # cv2.waitKey(1)
 
         # initialize array and set variables to obtain board state
         # TODO: Vectorize, probably won't make a huge difference in execution time
@@ -86,13 +80,16 @@ while True:
                 row = []
 
             count += 1
-        print(board_arr)
+
         # Generates every possible new state given the current board state
-        # TODO: Create evaluation function and apply depth-first tree search to find best states given depth of search D
         # https://github.com/jmitash/BilgeBot/blob/master/src/com/knox/bilgebot/ScoreSearch.java
         states = []
 
+        scores = []
+
+
         # for all pieces on the original board
+
         for i in range(0, board_arr.shape[0]):
             for j in range(0, board_arr.shape[1] - 1):
                 # copy original state
@@ -101,13 +98,13 @@ while True:
                 # make a move on the board (simply swap two pieces horizontally)
                 board_arr_move[i, j], board_arr_move[i, j + 1] = board_arr_move[i, j + 1], \
                                                                                  board_arr_move[i, j]
+                combos, min_length, max_length = obtain_combos(board_arr_move)
+                score = evaluation_function(combos, min_length, max_length)
+                scores.append((score,i,j,j+1))
 
-                # TEST: matches the current board state against the predetermined combo's as specified in-game
-                # Does work but currently EXTREMELY slow.
-                # for tbf in three_by_fours:
-                #     if match_pattern(board_arr_move, tbf):
-                #         print(tbf)
-                #         print("bingo!")
+                # for now, if the score is greater or equal to twenty, we stop finding a better solution
+                if score >= 20:
+                    continue
 
 
                 outs = [(find_longest_island_indices(board_arr_move, np.unique(board_arr_move)), "c"),
@@ -149,14 +146,9 @@ while True:
                 # append the new game state to a list when sorting is completed
                 states.append(((i,j),board_arr_move.astype(int)))
 
-    # prints out all 60 obtained states for debugging purposes (should always be 60 since 12*5 possible moves)
-    # print(len(states))
-    # for (i,j), state in states:
-    #     print((i,j))
-    #     print(state)
-    #     print("="*50)
-
-    print(time.time() - time_begin) # Currently takes 0.4-0.5 seconds to run on my computer (= very slow)
+    # prints out all 60 obtained states for debugging purposes (should always be 60 since 12*5 possible moves), mn
+    print(len(scores))
+    print(time.time() - tn) # Currently takes 0.4-0.5 seconds to run on my computer (= very slow)
     break
 
 cv2.destroyAllWindows()

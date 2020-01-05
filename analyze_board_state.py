@@ -9,8 +9,9 @@ def obtain_combos(board):
     chain_max = 1
 
     # go over all rows
-    board_length = board.shape[0]
+    board_length = 12
     chain = 1
+    ridx = []
 
     for n in range(board_length):
         board_row = board[n, :]
@@ -18,6 +19,7 @@ def obtain_combos(board):
             if board_row[i - 1] == board_row[i]:
                 chain += 1
                 if chain == 3:
+                    board[n,(i-2,i-1,i)] = 24
                     combos += 1
                     chain_min = 3
                     chain_max = 3
@@ -29,7 +31,7 @@ def obtain_combos(board):
                 chain = 1
 
     # go over all columns
-    board_length = board.shape[1]
+    board_length = 6
     chain = 1
 
     for n in range(board_length):
