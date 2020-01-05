@@ -19,7 +19,6 @@ def obtain_combos(board):
             if board_row[i - 1] == board_row[i]:
                 chain += 1
                 if chain == 3:
-                    board[n,(i-2,i-1,i)] = 24
                     combos += 1
                     chain_min = 3
                     chain_max = 3
