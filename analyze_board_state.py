@@ -10,11 +10,10 @@ def obtain_combos(board):
 
     # go over all rows
     board_length = 12
-    chain = 1
-    ridx = []
 
     for n in range(board_length):
         board_row = board[n, :]
+        chain = 1
         for i in range(1, len(board_row)):
             if board_row[i - 1] == board_row[i]:
                 chain += 1
@@ -31,11 +30,13 @@ def obtain_combos(board):
 
     # go over all columns
     board_length = 6
-    chain = 1
 
     for n in range(board_length):
-        board_col = board[:, n]
+        board_col = board[n, :]
         for i in range(1, len(board_col)):
+            chain = 1
+            if board_col[i] == 24:
+                continue
             if board_col[i - 1] == board_col[i]:
                 chain += 1
                 if chain == 3:
