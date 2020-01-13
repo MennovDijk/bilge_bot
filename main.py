@@ -11,6 +11,9 @@ from funcs import sliding_window, in_break
 from pywin32_grabwindow import obtain_pp_window_location
 from analyze_board_state import obtain_combos, evaluation_function, get_chain_indices, \
                                     make_move, move_to_back, clear_board
+
+from board import Board
+
 from pyclick import HumanClicker
 import matplotlib.pyplot as plt
 
@@ -73,9 +76,6 @@ while True:
                 max_vals.append(max_val)
 
             board.append(sorted(matching, key=itemgetter(1))[-1][0])
-            #cv2.imshow("Window", crop_img)  # (comment out if you want to see piece detection)
-            #cv2.waitKey(500)
-            #print(x,y)
 
         # this means that we are probably in a duty window or break, so we wait a bit and continue after
         if sum(max_vals) <= 230:
@@ -100,87 +100,80 @@ while True:
                 row = []
 
             count += 1
-        #print(board_arr)
-        # Generates every possible new state given the current board state
-        # https://github.com/jmitash/BilgeBot/blob/master/src/com/knox/bilgebot/ScoreSearch.java
-        states = []
 
-        scores = []
+        max_score = 0
+        max_score_board = None
 
-        depth = 0
-        max_depth = 5
+        start_board = Board(board = board_arr)
+        all_boards_d1 = []
 
-        count = 0
+        for i in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]:
+            for j in [0, 1, 2, 3, 4]:
+                board_d1 = make_move(start_board.board, i, j)
 
-        start_i = 0
-        start_j = 0
-
-
-        all_scores_and_moves = []
-
-        while start_i != 11:
-            i = start_i
-            j = start_j
-
-            moves = [(i, j)]
-            #time_begin = time.time()
-            # print("start")
-            # print(board_arr)
-            board_arr_move = make_move(board_arr, i, j)
-            # print("move 1")
-            # print(board_arr_move)
-            while depth != max_depth:
-                # This works but is definitely suboptimal
-                combos, min_length, max_length = obtain_combos(board_arr_move)
+                combos, min_length, max_length = obtain_combos(board_d1)
                 score = evaluation_function(combos, min_length, max_length)
 
+                board_d1_clear = Board(move=(i, j), board=clear_board(board_d1), score=score)
+                board_d1_clear.previous = start_board
 
-                board_arr_move = clear_board(board_arr_move)
+                if score > max_score:
+                    max_score = score
+                    max_score_board = board_d1_clear
 
+                all_boards_d1.append(board_d1_clear)
 
-                #tn = time.time()
-                #time.sleep(1)
-                depth += 1
-                j += 1
+        all_boards_d2 = []
 
-                if j == 5:
-                    j = 0
-                    i += 1
-                board_arr_move = make_move(board_arr_move, i, j)
+        for b in all_boards_d1:
+            for i in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]:
+                for j in [0, 1, 2, 3, 4]:
+                    board_d2 = make_move(b.board, i, j)
 
-                # for kadfi in all_scores_and_moves:
-                #     print("Score and move in list", kadfi)
-                #     time.sleep(1)
-                all_scores_and_moves.append((score - 2 * len(moves), copy.deepcopy(moves)))
-                moves.append((i, j))
-            #print(time.time()-tn)
+                    combos, min_length, max_length = obtain_combos(board_d2)
+                    score = evaluation_function(combos, min_length, max_length)
 
+                    board_d2_clear = Board(move=(i, j), board=clear_board(board_d2), score=score)
+                    board_d2_clear.previous = b
 
-            depth = 0
-            start_j += 1
+                    if (score - 3) > max_score:
+                        max_score = score
+                        max_score_board = board_d2_clear
 
-            if start_j == 5:
-                start_j = 0
-                start_i += 1
+                    all_boards_d2.append(board_d2_clear)
 
+        all_boards_d3 = []
 
-        # first sort on the top score
-        scores_moves = sorted(all_scores_and_moves, key=itemgetter(0), reverse=True)
+        for b in all_boards_d2:
+            for i in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]:
+                for j in [0, 1, 2, 3, 4]:
+                    board_d3 = make_move(b.board, i, j)
 
+                    combos, min_length, max_length = obtain_combos(board_d3)
+                    score = evaluation_function(combos, min_length, max_length)
+                    #print(score,i,j)
+                    board_d3_clear = Board(move=(i, j), board=clear_board(board_d3), score=score)
+                    board_d3_clear.previous = b
 
-        top_score = scores_moves[0][0]
+                    if (score - 6) > max_score:
+                        max_score = score
+                        max_score_board = board_d3_clear
 
-        # then check which of the top scores has the least amount of moves
-        move_to_make = sorted([sm for sm in scores_moves if sm[0] == top_score], key=lambda x: len(x[1]))[0]
-        print( sorted([sm for sm in scores_moves if sm[0] == top_score], key=lambda x: len(x[1]))[0])
-        print(move_to_make)
+                    all_boards_d3.append(board_d3_clear)
 
-        for move in move_to_make[1]:
+        moves_to_make = []
+        while max_score_board.previous:
+            moves_to_make.append(max_score_board.move)
+            max_score_board = max_score_board.previous
+
+        moves_to_make = moves_to_make[::-1]
+
+        for move in moves_to_make:
 
             hc.move(((ppwinx + 120) + 45 * move[1], (ppwiny + 92) + 45 * move[0]), 0.2)
             hc.click()
             # 2 seconds of waiting for the board to clear
-            time.sleep(2)
+            time.sleep(1)
             # Check whether we are in a duty/break window before continuing
             img = np.array(sct.grab(bilge_puzzle))
             img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
