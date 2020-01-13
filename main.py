@@ -7,14 +7,15 @@ import copy
 import numpy as np
 
 from operator import itemgetter
-from funcs import sliding_window, find_longest_island_indices, in_break
+from funcs import sliding_window, in_break
 from pywin32_grabwindow import obtain_pp_window_location
-from analyze_board_state import obtain_combos, evaluation_function
+from analyze_board_state import obtain_combos, evaluation_function, get_chain_indices, \
+                                    make_move, move_to_back, clear_board
 from pyclick import HumanClicker
 import matplotlib.pyplot as plt
 
 # load all template images of the pieces found on the board
-# TODO: Add the remaining pieces (last regular piece, pufferfish, jellyfish, crab)
+# TODO: Add the remaining pieces (last regular piece, jellyfish, crab)
 
 template_1 = ("1", cv2.imread('./images/whiteblue_square.png', 0))
 template_2 = ("2", cv2.imread('./images/greenblue_diamond.png', 0))
@@ -39,7 +40,6 @@ hc = HumanClicker()
 while True:
     # grab screen
     with mss.mss() as sct:
-        time_begin = time.time()
 
         # grab the x and y coordinates of the top-left of the Puzzle Pirates window
         ppwinx, ppwiny = obtain_pp_window_location()
@@ -115,88 +115,45 @@ while True:
         start_i = 0
         start_j = 0
 
-        solution = False
 
         all_scores_and_moves = []
 
         while start_i != 11:
-
-            board_arr_move = np.copy(board_arr)
             i = start_i
             j = start_j
 
             moves = [(i, j)]
-
+            #time_begin = time.time()
+            # print("start")
+            # print(board_arr)
+            board_arr_move = make_move(board_arr, i, j)
+            # print("move 1")
+            # print(board_arr_move)
             while depth != max_depth:
-
-
-                board_arr_move[i, j], board_arr_move[i, j + 1] = board_arr_move[i, j + 1], board_arr_move[i, j]
-
                 # This works but is definitely suboptimal
                 combos, min_length, max_length = obtain_combos(board_arr_move)
                 score = evaluation_function(combos, min_length, max_length)
 
-                # if (score >= 30):
-                #     break
-                # if (score >= 18 and (len(moves) <= 3)):
-                #     break
-                # if (score >= 15) and (len(moves) <= 2):
-                #     break
-                # if (score >= 9) and (len(moves) == 1):
-                #     break
+
+                board_arr_move = clear_board(board_arr_move)
 
 
-
-                outs = [(find_longest_island_indices(board_arr_move, np.unique(board_arr_move)), "c"),
-                        (find_longest_island_indices(board_arr_move.T, np.unique(board_arr_move)), "r")]
-
-                # Bilging game logic that handles how the board changes when 3+ in a row get cleared
-                # Keeps running when more than 3 pieces are matched either in columns or in rows
-                while outs[0][0][0][0] >= 3 or outs[1][0][0][0] >= 3:
-
-                    for out, r_c in outs:
-                        if r_c == "r":  # checks rows
-                            # if more than three of the same pieces in a row
-                            if out[0][0] >= 3:
-                                # because we're looking for rows here we need to transpose the array first
-                                board_arr_move = board_arr_move.T
-
-                                # set the value of the matching pieces to 24 (this is the "wildcard")
-                                for x, y in out[0][1]:
-                                    board_arr_move[x, y] = 24
-
-                                # Moves all pieces underneath the matching pieces up by how many pieces are matched
-                                board_arr_move = board_arr_move.T
-                                ar = np.arange(board_arr_move.shape[1])
-                                a = (board_arr_move == 24).argsort(0, kind='mergesort')
-                                board_arr_move[:] = board_arr_move[a, ar]
-
-                        if r_c == "c":  # checks columns
-                            if out[0][0] >= 3:
-                                for x, y in out[0][1]:
-                                    board_arr_move[x, y] = 24
-
-                                ar = np.arange(board_arr_move.shape[1])
-                                a = (board_arr_move == 24).argsort(0, kind='mergesort')
-                                board_arr_move[:] = board_arr_move[a, ar]
-
-                    outs = [(find_longest_island_indices(board_arr_move, np.unique(board_arr_move)), "c"),
-                            (find_longest_island_indices(board_arr_move.T, np.unique(board_arr_move)), "r")]
-
+                #tn = time.time()
+                #time.sleep(1)
                 depth += 1
                 j += 1
 
                 if j == 5:
                     j = 0
                     i += 1
+                board_arr_move = make_move(board_arr_move, i, j)
 
-
-                all_scores_and_moves.append((score - 2 * len(moves), copy.deepcopy(moves)))
                 # for kadfi in all_scores_and_moves:
                 #     print("Score and move in list", kadfi)
                 #     time.sleep(1)
+                all_scores_and_moves.append((score - 2 * len(moves), copy.deepcopy(moves)))
                 moves.append((i, j))
-
+            #print(time.time()-tn)
 
 
             depth = 0
