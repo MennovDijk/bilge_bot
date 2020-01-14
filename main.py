@@ -22,17 +22,18 @@ import matplotlib.pyplot as plt
 
 template_1 = ("1", cv2.imread('./images/whiteblue_square.png', 0))
 template_2 = ("2", cv2.imread('./images/greenblue_diamond.png', 0))
-template_3 = ("3", cv2.imread('./images/lightdarkblue_circle.png', 0))
+template_3 = ("3", cv2.imread('./images/lightblue_circle.png', 0))
 template_4 = ("4", cv2.imread('./images/lightyellow_circle.png', 0))
 template_5 = ("5", cv2.imread('./images/darkblue_square.png', 0))
 template_6 = ("6", cv2.imread('./images/lightblue_square.png', 0))
-template_7 = ("7", cv2.imread('./images/puffer.png', 0))
+template_7 = ("7", cv2.imread('./images/lightblue_diamond.png', 0))
+template_8 = ("7", cv2.imread('./images/puffer.png', 0))
 
 # plt.imshow(template_7[1])
 # plt.show()
 # exit()
 
-templates = [template_1, template_2, template_3, template_4, template_5, template_6, template_7]
+templates = [template_1, template_2, template_3, template_4, template_5, template_6, template_7, template_8]
 
 winW = 280
 winH = 560
@@ -78,7 +79,7 @@ while True:
             board.append(sorted(matching, key=itemgetter(1))[-1][0])
 
         # this means that we are probably in a duty window or break, so we wait a bit and continue after
-        if sum(max_vals) <= 230:
+        if sum(max_vals) <= 270:
             print("we're waiting before/after moves")
             time.sleep(0.5)
             continue
@@ -170,19 +171,21 @@ while True:
 
         for move in moves_to_make:
 
+            img = np.array(sct.grab(bilge_puzzle))
+            img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            print(in_break(img_gray, winW, winH, templates))
+            while in_break(img_gray, winW, winH, templates) <= 270:
+                print("we're waiting in between moves")
+                time.sleep(0.5)
+                img = np.array(sct.grab(bilge_puzzle))
+                img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
             hc.move(((ppwinx + 120) + 45 * move[1], (ppwiny + 92) + 45 * move[0]), 0.2)
             hc.click()
             # 2 seconds of waiting for the board to clear
             time.sleep(1)
             # Check whether we are in a duty/break window before continuing
-            img = np.array(sct.grab(bilge_puzzle))
-            img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-            while in_break(img_gray, winW, winH, templates) <= 230:
-                print("we're waiting in between moves")
-                time.sleep(0.5)
-                img = np.array(sct.grab(bilge_puzzle))
-                img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
 
 
