@@ -112,8 +112,8 @@ while True:
             for j in [0, 1, 2, 3, 4]:
                 board_d1 = make_move(start_board.board, i, j)
 
-                combos, min_length, max_length = obtain_combos(board_d1)
-                score = evaluation_function(combos, min_length, max_length)
+                combos, min_length, max_length, extra = obtain_combos(board_d1)
+                score = evaluation_function(combos, min_length, max_length, extra)
 
                 board_d1_clear = Board(move=(i, j), board=clear_board(board_d1), score=score)
                 board_d1_clear.previous = start_board
@@ -131,13 +131,13 @@ while True:
                 for j in [0, 1, 2, 3, 4]:
                     board_d2 = make_move(b.board, i, j)
 
-                    combos, min_length, max_length = obtain_combos(board_d2)
-                    score = evaluation_function(combos, min_length, max_length)
+                    combos, min_length, max_length, extra = obtain_combos(board_d2)
+                    score = evaluation_function(combos, min_length, max_length, extra)
 
                     board_d2_clear = Board(move=(i, j), board=clear_board(board_d2), score=score)
                     board_d2_clear.previous = b
 
-                    if (score - 3) > max_score:
+                    if (score - 6) > max_score:
                         max_score = score
                         max_score_board = board_d2_clear
 
@@ -150,13 +150,13 @@ while True:
                 for j in [0, 1, 2, 3, 4]:
                     board_d3 = make_move(b.board, i, j)
 
-                    combos, min_length, max_length = obtain_combos(board_d3)
-                    score = evaluation_function(combos, min_length, max_length)
+                    combos, min_length, max_length, extra = obtain_combos(board_d3)
+                    score = evaluation_function(combos, min_length, max_length, extra)
                     #print(score,i,j)
                     board_d3_clear = Board(move=(i, j), board=clear_board(board_d3), score=score)
                     board_d3_clear.previous = b
 
-                    if (score - 6) > max_score:
+                    if (score - 8) > max_score:
                         max_score = score
                         max_score_board = board_d3_clear
 

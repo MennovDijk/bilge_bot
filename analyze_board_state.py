@@ -5,6 +5,7 @@ from numba import jit
 @jit(nopython=True)
 def obtain_combos(board):
     combos = 0
+    extra = 0
     chain_min = 1
     chain_max = 1
 
@@ -16,6 +17,7 @@ def obtain_combos(board):
         chain = 1
         for i in range(1, len(board_row)):
             if board_row[i-1] == 24:
+                extra += 0.5
                 continue
             if board_row[i - 1] == board_row[i]:
                 chain += 1
@@ -38,6 +40,7 @@ def obtain_combos(board):
         chain = 1
         for i in range(1, len(board_col)):
             if board_col[i-1] == 24:
+                extra += 0.5
                 continue
             if board_col[i - 1] == board_col[i]:
                 chain += 1
@@ -52,12 +55,12 @@ def obtain_combos(board):
             else:
                 chain = 1
 
-    return combos, chain_min, chain_max
+    return combos, chain_min, chain_max, extra
 
 
 # this is incorrect but will serve for now
-def evaluation_function(number_of_combos, chain_min, chain_max):
-        return number_of_combos * chain_min * chain_max
+def evaluation_function(number_of_combos, chain_min, chain_max, extra):
+        return number_of_combos * chain_min * chain_max + extra
 
 @jit(nopython = True)
 def make_move(board, i, j):
