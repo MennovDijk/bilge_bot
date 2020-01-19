@@ -20,26 +20,27 @@ import matplotlib.pyplot as plt
 # load all template images of the pieces found on the board
 # TODO: Add the remaining pieces (last regular piece, jellyfish, crab)
 
-template_1 = ("1", cv2.imread('./images/whiteblue_square.png', 0))
-template_2 = ("2", cv2.imread('./images/greenblue_diamond.png', 0))
-template_3 = ("3", cv2.imread('./images/lightblue_circle.png', 0))
-template_4 = ("4", cv2.imread('./images/lightyellow_circle.png', 0))
-template_5 = ("5", cv2.imread('./images/darkblue_square.png', 0))
-template_6 = ("6", cv2.imread('./images/lightblue_square.png', 0))
-template_7 = ("7", cv2.imread('./images/lightblue_diamond.png', 0))
-template_8 = ("7", cv2.imread('./images/puffer.png', 0))
+color_or_not = 1
 
-# plt.imshow(template_7[1])
-# plt.show()
-# exit()
+template_1 = ("1", cv2.imread('./images/whiteblue_square.png', color_or_not))
+template_2 = ("2", cv2.imread('./images/greenblue_diamond.png', color_or_not))
+template_3 = ("3", cv2.imread('./images/lightblue_circle.png', color_or_not))
+template_4 = ("4", cv2.imread('./images/lightyellow_circle.png', color_or_not))
+template_5 = ("5", cv2.imread('./images/darkblue_square.png', color_or_not))
+template_6 = ("6", cv2.imread('./images/lightblue_square.png', color_or_not))
+template_7 = ("7", cv2.imread('./images/lightblue_diamond.png', color_or_not))
+template_8 = ("8", cv2.imread('./images/puffer.png', color_or_not))
+template_9 = ("9", cv2.imread('./images/crab.png', color_or_not))
+template_10 = ("10", cv2.imread('./images/jellyfish.png', color_or_not))
 
-templates = [template_1, template_2, template_3, template_4, template_5, template_6, template_7, template_8]
+templates = [template_1, template_2, template_3, template_4, template_5, template_6, template_7, template_8, \
+             template_9, template_10]
 
 winW = 280
 winH = 560
 
 hc = HumanClicker()
-
+print(template_1[1].shape)
 # Main loop
 while True:
     # grab screen
@@ -52,26 +53,25 @@ while True:
         bilge_puzzle = {'top': ppwiny+72, 'left': ppwinx+92, 'width': winW-15, 'height': winH-20}
 
         img = np.array(sct.grab(bilge_puzzle))
-        img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        img = img[:,:,0:3]
+        #img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
         board = []
-        matching = []
         max_vals = []
         # Analyze pieces on board by sliding over every piece individually and template matching them
         for (x, y, window) in sliding_window(start_x = 0,
                                              start_y = 0,
-                                             image = img_gray,
+                                             image = img,
                                              stepSize= 45,
                                              windowSize=(winW, winH)):
-            crop_img = img_gray[y:y + 45, x:x + 45]
-
+            crop_img = img[y:y + 45, x:x + 45]
+            #print(crop_img.shape)
             # TODO: might possibly need colors to properly detect, need to check with all 9 possible pieces
-
 
             matching = []
             # Template matching of every individual piece on the board against the templates included from above
             for temp in templates:
-                res = cv2.matchTemplate(crop_img, cv2.resize(temp[1], dsize=(45,45)), cv2.TM_CCOEFF_NORMED)
+                res = cv2.matchTemplate(crop_img, cv2.resize(temp[1], dsize=(45, 45)), cv2.TM_CCOEFF_NORMED)
                 min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
                 matching.append((temp[0], max_val))
                 max_vals.append(max_val)
@@ -79,13 +79,13 @@ while True:
             board.append(sorted(matching, key=itemgetter(1))[-1][0])
 
         # this means that we are probably in a duty window or break, so we wait a bit and continue after
-        if sum(max_vals) <= 270:
+        print(sum(max_vals))
+        if sum(max_vals) <= 240:
             print("we're waiting before/after moves")
             time.sleep(0.5)
             continue
 
         # initialize array and set variables to obtain board state
-        # TODO: Vectorize, probably won't make a huge difference in execution time
         board_arr = np.zeros((12, 6))
         count = 1
         line = 0
@@ -101,7 +101,7 @@ while True:
                 row = []
 
             count += 1
-
+        print(board_arr)
         max_score = 0
         max_score_board = None
 
@@ -172,13 +172,16 @@ while True:
         for move in moves_to_make:
 
             img = np.array(sct.grab(bilge_puzzle))
-            img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-            print(in_break(img_gray, winW, winH, templates))
-            while in_break(img_gray, winW, winH, templates) <= 270:
+            img = img[:,:,0:3]
+
+            #img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            print(in_break(img, winW, winH, templates))
+            while in_break(img, winW, winH, templates) <= 240:
                 print("we're waiting in between moves")
                 time.sleep(0.5)
                 img = np.array(sct.grab(bilge_puzzle))
-                img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+                img = img[:, :, 0:3]
+                #img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
             hc.move(((ppwinx + 120) + 45 * move[1], (ppwiny + 92) + 45 * move[0]), 0.2)
             hc.click()

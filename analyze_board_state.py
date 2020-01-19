@@ -120,19 +120,20 @@ def get_chain_indices(board):
 
     return indices
 
-@jit(nopython = True)
-def move_to_back(a, value):
-    new_a = []
-
-    total_values = 0
-
-    for v in a:
-        if v == value:
-            total_values += 1
+@jit(nopython=True)
+def _move_to_back(a, value):
+    count = 0
+    for x in a:
+        if x != value:
+            yield x
         else:
-            new_a.append(v)
+            count += 1
+    for _ in range(count):
+        yield value
 
-    return new_a + [value] * total_values
+@jit(nopython=True)
+def move_to_back(a, value):
+    return list(_move_to_back(a, value))
 
 # JIT IT
 def clear_board(board):
@@ -148,3 +149,7 @@ def clear_board(board):
         indices = get_chain_indices(board)
 
     return board
+
+
+
+
