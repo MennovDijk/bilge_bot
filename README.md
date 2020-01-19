@@ -23,6 +23,6 @@ No manual input is required. The program will automatically pause when you do no
 
 - Multithreading support
 - Optimize existing code 
-- Refactor code (yes, I am fully aware it is a mess right now)
+- Refactor code (yes, I am fully aware it is a mess right now).
 
 **NOTE:** Making use of this script can (and probably will) lead to your account getting banned. I only undertook this project to learn more about algorithms and image processing. 
