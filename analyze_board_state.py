@@ -9,15 +9,12 @@ def obtain_combos(board):
     chain_min = 1
     chain_max = 1
 
-    # go over all rows
-    board_length = 12
-
-    for n in range(board_length):
+    for n in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]:
         board_row = board[n, :]
         chain = 1
-        for i in range(1, len(board_row)):
-            if board_row[i-1] == 24:
-                extra += 0.5
+        for i in [1, 2, 3, 4, 5]:
+            if board_row[i - 1] == 24:
+                extra += 0.2
                 continue
             if board_row[i - 1] == board_row[i]:
                 chain += 1
@@ -35,12 +32,12 @@ def obtain_combos(board):
     # go over all columns
     board_length = 6
 
-    for n in range(board_length):
+    for n in [1, 2, 3, 4, 5]:
         board_col = board[:, n]
         chain = 1
-        for i in range(1, len(board_col)):
-            if board_col[i-1] == 24:
-                extra += 0.5
+        for i in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]:
+            if board_col[i - 1] == 24:
+                extra += 0.2
                 continue
             if board_col[i - 1] == board_col[i]:
                 chain += 1
@@ -62,25 +59,44 @@ def obtain_combos(board):
 def evaluation_function(number_of_combos, chain_min, chain_max, extra):
         return number_of_combos * chain_min * chain_max + extra
 
-@jit(nopython = True)
 def make_move(board, i, j):
-    board_copy = np.copy(board)
-    board_copy[i, j], board_copy[i, j + 1] = board_copy[i, j + 1], board_copy[i, j]
+    if board[i, j] == 8:
+        board_copy = np.copy(board)
+        board_copy_puffer = puffer_move(board_copy, i, j)
 
-    return board_copy
+        return board_copy_puffer
+
+    elif (board[i, j] == 9) or (board[i, j + 1] == 9):
+
+        return np.copy(board)
+
+    elif board[i, j] == 10:
+        board_copy = np.copy(board)
+        board_copy_jellyfish = jellyfish_move(board_copy, i, j + 1)
+
+        return board_copy_jellyfish
+
+    elif board[i, j + 1] == 10:
+        board_copy = np.copy(board)
+        board_copy_jellyfish = jellyfish_move(board_copy, i, j)
+
+        return board_copy_jellyfish
+
+    else:
+        board_copy = np.copy(board)
+        board_copy[i, j], board_copy[i, j + 1] = board_copy[i, j + 1], board_copy[i, j]
+
+        return board_copy
 
 
 @jit(nopython=True)
 def get_chain_indices(board):
     indices = []
 
-    # go over all rows
-    board_length = 12
-
-    for n in range(board_length):
+    for n in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]:
         board_row = board[n, :]
         chain = 1
-        for i in range(1, len(board_row)):
+        for i in [1, 2, 3, 4, 5]:
             if board_row[i - 1] == 24:
                 continue
             if board_row[i - 1] == board_row[i]:
@@ -96,13 +112,11 @@ def get_chain_indices(board):
             else:
                 chain = 1
 
-    # go over all columns
-    board_length = 6
-
-    for n in range(board_length):
+    for n in [0, 1, 2, 3, 4, 5]:
         board_col = board[:, n]
         chain = 1
-        for i in range(1, len(board_col)):
+
+        for i in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]:
             if board_col[i - 1] == 24:
                 continue
             if board_col[i - 1] == board_col[i]:
@@ -151,5 +165,32 @@ def clear_board(board):
     return board
 
 
+@jit(nopython=True)
+def puffer_move(board, i, j):
 
+    # puffer is at index (i,j). Remove 3x3 around puffer.
 
+    min_col = max(0, j - 1)
+    max_col = min(5, j + 2)
+
+    min_row = max(0, i - 1)
+    max_row = min(11, i + 1)
+
+    # start with 3 above:
+    board[min_row, min_col:max_col] = 24
+
+    # then same line
+    board[i, min_col:max_col] = 24
+
+    # then bottom
+    board[max_row, min_col:max_col] = 24
+
+    return board
+
+def jellyfish_move(board, i, j):
+    piece_to_delete = board[i, j]
+
+    mask = board == piece_to_delete
+    board[mask] = 24
+
+    return board

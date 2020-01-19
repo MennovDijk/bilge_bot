@@ -1,8 +1,6 @@
 import mss
 import cv2
 import time
-import win32gui
-import copy
 
 import numpy as np
 
@@ -15,7 +13,6 @@ from analyze_board_state import obtain_combos, evaluation_function, get_chain_in
 from board import Board
 
 from pyclick import HumanClicker
-import matplotlib.pyplot as plt
 
 # load all template images of the pieces found on the board
 # TODO: Add the remaining pieces (last regular piece, jellyfish, crab)
@@ -40,7 +37,10 @@ winW = 280
 winH = 560
 
 hc = HumanClicker()
-print(template_1[1].shape)
+#
+# NAME = input("What is your Puzzle Pirates character name?")
+# OCEAN = input("What ocean do you play on?")
+
 # Main loop
 while True:
     # grab screen
@@ -101,7 +101,7 @@ while True:
                 row = []
 
             count += 1
-        print(board_arr)
+        # print(board_arr)
         max_score = 0
         max_score_board = None
 
@@ -194,8 +194,8 @@ while True:
 
 
 
-
-
-cv2.destroyAllWindows()
-exit()
+#
+#
+# cv2.destroyAllWindows()
+# exit()
 
