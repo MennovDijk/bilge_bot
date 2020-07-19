@@ -17,7 +17,7 @@ No manual input is required. The program will automatically pause when you do no
 
 - Start up the Puzzle Pirates client.
 - Change the string in pywin32.grabwindow.py to match your Puzzle Pirates client (this requires you to only change the name and ocean you are playing on)
-- Run the program.
+- Run the program while having the bilging puzzle window opened.
 
 # TODO
 
